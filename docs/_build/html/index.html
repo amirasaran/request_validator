@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Request Validator’s documentation! &#8212; Request Validator 1.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-request-validator-s-documentation">
+<h1>Welcome to Request Validator&#8217;s documentation!<a class="headerlink" href="#welcome-to-request-validator-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+<div class="section" id="github">
+<h1>Github<a class="headerlink" href="#github" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://github.com/amirasaran/request_validator">https://github.com/amirasaran/request_validator</a></p>
+</div>
+<div class="section" id="request-validator">
+<h1>request_validator<a class="headerlink" href="#request-validator" title="Permalink to this headline">¶</a></h1>
+<p>Python Request(json) Validator</p>
+</div>
+<div class="section" id="how-to-install">
+<h1>how to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">request_validator</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-use">
+<h1>How to use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line">Imaging you have a json response that get from rest api server and you</div>
+<div class="line">must validate response.</div>
+</div>
+<p><strong>sample:</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">request_validator.serializers</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">request_validator.fields</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<span class="k">class</span> <span class="nc">GlossDefSerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="n">para</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">gloss_see_also</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossSeeAlso&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GlossEntrySerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">IntField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;ID&quot;</span><span class="p">)</span>
+    <span class="n">sort_as</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;SortAs&quot;</span><span class="p">)</span>
+    <span class="n">gloss_term</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossTerm&quot;</span><span class="p">)</span>
+    <span class="n">acronym</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Acronym&quot;</span><span class="p">)</span>
+    <span class="n">abbrev</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Abbrev&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_blank</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gloss_def</span> <span class="o">=</span> <span class="n">GlossDefSerializer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossDef&quot;</span><span class="p">)</span>
+    <span class="n">gloss_see</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossSee&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GlossListSerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="n">gloss_entry</span> <span class="o">=</span> <span class="n">GlossEntrySerializer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossEntry&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GlossDivSerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">gloss_list</span> <span class="o">=</span> <span class="n">GlossListSerializer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossList&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GlossarySerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">gloss_div</span> <span class="o">=</span> <span class="n">GlossDivSerializer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;GlossDiv&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SampleSerializer</span><span class="p">(</span><span class="n">BaseSerializer</span><span class="p">):</span>
+    <span class="n">glossary</span> <span class="o">=</span> <span class="n">GlossarySerializer</span><span class="p">()</span>
+
+
+<span class="n">sample_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;glossary&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;example glossary&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;GlossDiv&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;S&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;GlossList&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;GlossEntry&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                    <span class="s2">&quot;SortAs&quot;</span><span class="p">:</span> <span class="s2">&quot;SGML&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;GlossTerm&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard Generalized Markup Language&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Acronym&quot;</span><span class="p">:</span> <span class="s2">&quot;SGML&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Abbrev&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;GlossDef&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;para&quot;</span><span class="p">:</span> <span class="s2">&quot;A meta-markup language, used to create markup languages such as DocBook.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;GlossSeeAlso&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GML&quot;</span><span class="p">,</span> <span class="s2">&quot;XML&quot;</span><span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;GlossSee&quot;</span><span class="p">:</span> <span class="s2">&quot;markup&quot;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">SampleSerializer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">sample_data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;validation status:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">validation errors:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">get_errors</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">validated data:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">validate_data</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>The above sample output:</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="n">status</span><span class="p">:</span>
+<span class="kc">False</span>
+
+<span class="n">validation</span> <span class="n">errors</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;glossary&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;gloss_div&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;gloss_list&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;gloss_entry&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;This field cannot be blank&#39;</span><span class="p">]}}}}}</span>
+
+<span class="n">validated</span> <span class="n">data</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;glossary&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;example glossary&#39;</span><span class="p">,</span> <span class="s1">&#39;gloss_div&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;gloss_list&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;gloss_entry&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;acronym&#39;</span><span class="p">:</span> <span class="s1">&#39;SGML&#39;</span><span class="p">,</span> <span class="s1">&#39;gloss_term&#39;</span><span class="p">:</span> <span class="s1">&#39;Standard Generalized Markup Language&#39;</span><span class="p">,</span> <span class="s1">&#39;gloss_def&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;gloss_see_also&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;GML&#39;</span><span class="p">,</span> <span class="s1">&#39;XML&#39;</span><span class="p">],</span> <span class="s1">&#39;para&#39;</span><span class="p">:</span> <span class="s1">&#39;A meta-markup language, used to create markup languages such as DocBook.&#39;</span><span class="p">},</span> <span class="s1">&#39;gloss_see&#39;</span><span class="p">:</span> <span class="s1">&#39;markup&#39;</span><span class="p">,</span> <span class="s1">&#39;sort_as&#39;</span><span class="p">:</span> <span class="s1">&#39;SGML&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">}}}}}</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Request Validator&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#github">Github</a></li>
+<li><a class="reference internal" href="#request-validator">request_validator</a></li>
+<li><a class="reference internal" href="#how-to-install">how to install</a></li>
+<li><a class="reference internal" href="#how-to-use">How to use</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, amir mohsen asaran.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
