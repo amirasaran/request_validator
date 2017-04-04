@@ -1,3 +1,8 @@
+from __future__ import absolute_import
+
+from .fields import Field
+
+
 class BaseSerializer(object):
     def __init__(self, data=None, source=None, required=True, many=False):
         self._initial_data = data
