@@ -170,3 +170,14 @@ class DateField(Field):
             self._format = "%Y-%m-%d"
 
         self.add_rule(Validator.DATE, {"format": self._format, "convert_to_date": convert_to_date})
+
+
+class DateTimeField(Field):
+    def __init__(self, date_format=None, convert_to_datetime=False, *args, **kwargs):
+        super(DateTimeField, self).__init__(*args, **kwargs)
+        if date_format:
+            self._format = date_format
+        else:
+            self._format = "%Y-%m-%dT%H:%M:%S"
+
+        self.add_rule(Validator.DATETIME, {"format": self._format, "convert_to_datetime": convert_to_datetime})

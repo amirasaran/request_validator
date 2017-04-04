@@ -17,7 +17,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='request-validator',
-    version='1.1.0',
+    version='1.2.0',
     description='Python request validator',
     long_description=long_description,
     url='https://github.com/amirasaran/request_validator',

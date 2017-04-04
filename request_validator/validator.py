@@ -6,6 +6,7 @@ class Validator(object):
     STRING = "string"
     REGEX = "regex"
     DATE = "date"
+    DATETIME = "datetime"
     MAX_LEN = "max_len"
     MIN_LEN = "min_len"
     MAX_VALUE = "max_value"
@@ -24,7 +25,8 @@ class Validator(object):
         MIN_VALUE: "This field must be smaller than {len}",
         IN: "This field must be choice from ({choices})",
         REGEX: "This field must be valid in pattern ({pattern})",
-        DATE: "This field must be valid date (format='{date_format}')"
+        DATE: "This field must be valid date (format='{date_format}')",
+        DATETIME: "This field must be valid datetime (format='{date_format}')"
     }
 
     def __init__(self, data, validator, value=None):
@@ -139,4 +141,40 @@ class Validator(object):
                     self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'])
                     return False
         self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'])
+        return False
+
+    def check_datetime(self):
+        import datetime
+        if self._value['convert_to_datetime']:
+            if isinstance(self.data, datetime.datetime):
+                return True
+            elif isinstance(self.data, datetime.date):
+                self.data = datetime.datetime(self.data.year, self.data.month, self.data.day)
+                return True
+            elif isinstance(self.data, str):
+                try:
+                    self.data = datetime.datetime.strptime(self.data, self._value['format'])
+                    return True
+                except Exception as e:
+                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
+                    return False
+        else:
+            if isinstance(self.data, datetime.datetime):
+                self.data = self.data.strftime(self._value['format'])
+                return True
+            elif isinstance(self.data, datetime.date):
+                self.data = datetime.datetime(self.data.year, self.data.month, self.data.day).strftime(
+                    self._value['format'])
+                return True
+            elif isinstance(self.data, str):
+                try:
+                    self.data = datetime.datetime.strptime(
+                        self.data,
+                        self._value['format']
+                    ).strftime(self._value['format'])
+                    return True
+                except Exception as e:
+                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
+                    return False
+        self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
         return False
