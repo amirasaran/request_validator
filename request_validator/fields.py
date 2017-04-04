@@ -46,6 +46,7 @@ class Field(object):
             for rule, value in self._rules.iteritems():
                 validator = Validator(self.data, rule, value)
                 if validator.validate():
+                    self.data = validator.data
                     continue
                 else:
                     self._errors.append(validator.get_message())
@@ -158,3 +159,14 @@ class RegexField(CharField):
         super(RegexField, self).__init__(*args, **kwargs)
 
         self.add_rule(Validator.REGEX, pattern)
+
+
+class DateField(Field):
+    def __init__(self, date_format=None, convert_to_date=False, *args, **kwargs):
+        super(DateField, self).__init__(*args, **kwargs)
+        if date_format:
+            self._format = date_format
+        else:
+            self._format = "%Y-%m-%d"
+
+        self.add_rule(Validator.DATE, {"format": self._format, "convert_to_date": convert_to_date})
