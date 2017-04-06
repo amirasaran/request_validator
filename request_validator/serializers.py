@@ -1,20 +1,26 @@
 from __future__ import absolute_import
 
+import copy
+
 from .fields import Field
 
 
 class BaseSerializer(object):
-    def __init__(self, data=None, source=None, required=True, many=False):
+    def __init__(self, data=None, source=None, required=True, many=False, force_valid=False):
         self._initial_data = data
         self._source = source
         self._required = required
         self._many = many
+        self._force_valid = force_valid
+        self._all_fields_valid = True
         if self._many:
             self._validate_data = []
             self._errors = []
+            self._default = []
         else:
             self._validate_data = {}
             self._errors = {}
+            self._default = {}
 
     def set_initial_data(self, data, index):
         self._initial_data = None
@@ -30,8 +36,46 @@ class BaseSerializer(object):
                 self.add_error("initial_error", "This field is required")
         return self
 
+    def __new__(cls, *args, **kwargs):
+        cls.fields()
+        return object.__new__(cls, *args, **kwargs)
+
     def validate_data(self):
-        return self._validate_data
+        if self._many:
+            if not (self._force_valid and not self.has_error()):
+                return self._validate_data
+            return []
+        else:
+            if not (self._force_valid and self.has_error()) and self._all_fields_valid:
+                return self._validate_data
+            return {}
+
+    @classmethod
+    def fields(cls):
+        if not hasattr(cls, "_fields_dict"):
+            fields = {}
+            for field in cls._get_fields():
+                fields[field] = getattr(cls, field)
+                delattr(cls, field)
+            setattr(cls, '_fields_dict', fields)
+        return getattr(cls, '_fields_dict')
+
+    @classmethod
+    def _get_fields(cls):
+        if not hasattr(cls, '_fields'):
+            cls._fields = set(dir(cls)) - set(dir(BaseSerializer))
+        return cls._fields
+
+    def _get_field(self, key):
+        return copy.deepcopy(getattr(self, '_fields_dict')[key])
+
+    @property
+    def data(self):
+        data = self.validate_data()
+        for key, value in self.fields().items():
+            if key not in data:
+                data[key] = value._default
+        return data
 
     def add_error(self, index, value):
         if self._many:
@@ -46,42 +90,54 @@ class BaseSerializer(object):
         return len(self._errors) != 0
 
     def is_valid(self):
-        attributes = set(dir(self.__class__)) - set(dir(BaseSerializer))
-
         if not self._many:
-            self._validate_data = self._validate(attributes, self._initial_data)
+            validated_data, serializer_validated = self._validate(self._initial_data)
+            # if not (self._force_valid and serializer_validated):
+            self._validate_data = validated_data
         else:
             if self._initial_data:
                 assert isinstance(self._initial_data, list) or isinstance(self._initial_data, tuple), \
                     """ _initial_data must be list or tuple but get {data_type}""".format(
                         data_type=type(self._initial_data).__name__)
                 for initial_data in self._initial_data:
-                    validated_data = self._validate(attributes, initial_data)
+                    validated_data, serializer_validated = self._validate(initial_data)
                     if validated_data:
-                        self._validate_data.append(validated_data)
+                        if not (self._force_valid and not serializer_validated):
+                            self._validate_data.append(validated_data)
 
         return not self.has_error()
 
-    def _validate(self, attributes, initial_data):
+    def _validate(self, initial_data):
         validate_data = {}
-        for attr in attributes:
-            field = getattr(self, attr)
+        serializer_validated = True
+        for attr in self.fields():
+            field = self._get_field(attr)
             if isinstance(field, Field):
                 field.set_data(initial_data, attr)
                 if field.has_error():
+                    self._all_fields_valid = False
+                    serializer_validated = False
                     self.add_error(attr, field.get_errors())
                     continue
                 if not field.validate():
+                    serializer_validated = False
                     self.add_error(attr, field.get_errors())
                     continue
                 validate_data[attr] = field.data
             elif isinstance(field, BaseSerializer):
                 field.set_initial_data(initial_data, attr)
                 if field.has_error():
+                    self._all_fields_valid = False
+                    serializer_validated = False
                     self.add_error(attr, field.get_errors())
                     continue
                 elif not field.is_valid():
+                    serializer_validated = False
                     self.add_error(attr, field.get_errors())
                 validate_data[attr] = field.validate_data()
                 continue
-        return validate_data
+        return validate_data, serializer_validated
+
+    @property
+    def all_fields_valid(self):
+        return self._all_fields_valid

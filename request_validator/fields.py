@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import copy
+
 from .validator import *
 
 
@@ -28,6 +30,9 @@ class Field(object):
                 self._errors.append("This field is required")
 
         return self
+
+    def is_required(self):
+        return self._required
 
     def add_rule(self, rule, value=None):
         self._rules[rule] = value
