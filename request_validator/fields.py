@@ -21,6 +21,12 @@ class Field(object):
         self._errors = []
 
         self._data = data
+
+        if not self._data:
+            if self._required:
+                self._errors.append("This field is required")
+            return self
+
         if self._source in self._data:
             self.data = self._data[self._source]
         elif index in self._data:
