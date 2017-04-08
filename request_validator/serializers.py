@@ -63,7 +63,11 @@ class BaseSerializer(object):
     @classmethod
     def _get_fields(cls):
         if not hasattr(cls, '_fields'):
-            cls._fields = set(dir(cls)) - set(dir(BaseSerializer))
+            cls._fields = []
+            for field in set(dir(cls)) - set(dir(BaseSerializer)):
+                if not isinstance(getattr(cls, field), (Field, BaseSerializer)):
+                    continue
+                cls._fields.append(field)
         return cls._fields
 
     def _get_field(self, key):
@@ -108,8 +112,16 @@ class BaseSerializer(object):
         return not self.has_error()
 
     def _validate(self, initial_data):
-        validate_data = {}
         serializer_validated = True
+        validate_data = {}
+        errors, initial_data = self._check_user_validation(initial_data)
+
+        if len(errors) != 0:
+            self._all_fields_valid = False
+            for error in errors:
+                for key, value in error.iteritems():
+                    self.add_error(key, value)
+
         for attr in self.fields():
             field = self._get_field(attr)
             if isinstance(field, Field):
@@ -138,6 +150,33 @@ class BaseSerializer(object):
                 continue
         return validate_data, serializer_validated
 
+    def _check_user_validation(self, data):
+        try:
+            before_validation = self.validate(data)
+            return [], before_validation
+        except ValidationError as e:
+            return e.details, data
+
+    def validate(self, attr):
+        return attr
+
     @property
     def all_fields_valid(self):
         return self._all_fields_valid
+
+    @property
+    def errors(self):
+        return self.get_errors()
+
+
+class ValidationError(Exception):
+    def __init__(self, details):
+
+        self.details = []
+        if not isinstance(details, list):
+            details = [details]
+        for detail in details:
+            if not isinstance(detail, dict):
+                self.details.append({'non_field_error': str(detail)})
+            else:
+                self.details.append(detail)

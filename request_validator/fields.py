@@ -134,6 +134,10 @@ class IntField(Field):
             self.add_rule(Validator.IN, choices)
 
 
+class IntegerField(IntField):
+    pass
+
+
 class FloatField(Field):
     def __init__(self, min_value=None, max_value=None, choices=None, allow_null=True, *args,
                  **kwargs):
@@ -173,10 +177,10 @@ class RegexField(CharField):
 
 
 class DateField(Field):
-    def __init__(self, date_format=None, convert_to_date=False, *args, **kwargs):
+    def __init__(self, format=None, convert_to_date=False, *args, **kwargs):
         super(DateField, self).__init__(*args, **kwargs)
-        if date_format:
-            self._format = date_format
+        if format:
+            self._format = format
         else:
             self._format = "%Y-%m-%d"
 
@@ -184,10 +188,10 @@ class DateField(Field):
 
 
 class DateTimeField(Field):
-    def __init__(self, date_format=None, convert_to_datetime=False, *args, **kwargs):
+    def __init__(self, format=None, convert_to_datetime=False, *args, **kwargs):
         super(DateTimeField, self).__init__(*args, **kwargs)
-        if date_format:
-            self._format = date_format
+        if format:
+            self._format = format
         else:
             self._format = "%Y-%m-%dT%H:%M:%S"
 

@@ -1,3 +1,6 @@
+from __builtin__ import unicode
+
+
 class Validator(object):
     NOT_NULL = 'not_null'
     NOT_BLANK = 'not_blank'
@@ -16,8 +19,8 @@ class Validator(object):
     _MESSAGES = {
         NOT_NULL: "This field cannot be null",
         NOT_BLANK: "This field cannot be blank",
-        INT: "This field must be integer",
-        FLOAT: "This field must be float",
+        INT: "This field must be integer but get {data_type}",
+        FLOAT: "This field must be float  {data_type}",
         STRING: "This field must be string but get {data_type}",
         MAX_LEN: "This field must be larger than {len} characters",
         MIN_LEN: "This field must be smaller than {len} characters",
@@ -25,8 +28,8 @@ class Validator(object):
         MIN_VALUE: "This field must be smaller than {len}",
         IN: "This field must be choice from ({choices})",
         REGEX: "This field must be valid in pattern ({pattern})",
-        DATE: "This field must be valid date (format='{date_format}')",
-        DATETIME: "This field must be valid datetime (format='{date_format}')"
+        DATE: "This field must be valid date (format='{date_format}') but given data is {data}",
+        DATETIME: "This field must be valid datetime (format='{date_format}') but given data is {data}"
     }
 
     def __init__(self, data, validator, value=None):
@@ -56,17 +59,26 @@ class Validator(object):
     def check_int(self):
         if isinstance(self.data, int):
             return True
-        self.error = self._MESSAGES[self.INT]
+        if isinstance(self.data, (str, unicode)):
+            import re
+            if re.match(r"\d+", self.data):
+                self.data = int(self.data)
+                return True
+
+        self.error = self._MESSAGES[self.INT].format(data_type=type(self.data).__name__)
         return False
 
     def check_float(self):
         if isinstance(self.data, float):
             return True
-        self.error = self._MESSAGES[self.INT]
+        if isinstance(self.data, int):
+            self.data = float(self.data)
+            return True
+        self.error = self._MESSAGES[self.FLOAT].format(data_type=type(self.data).__name__)
         return False
 
     def check_string(self):
-        if isinstance(self.data, str):
+        if isinstance(self.data, (str, unicode)):
             return True
         self.error = self._MESSAGES[self.STRING].format(data_type=type(self.data).__name__)
         return False
@@ -109,6 +121,8 @@ class Validator(object):
         return False
 
     def check_date(self):
+        if isinstance(self.data, (str, unicode)):
+            self.data = self.data.strip()
         import datetime
         if self._value['convert_to_date']:
             if isinstance(self.data, datetime.datetime):
@@ -121,7 +135,8 @@ class Validator(object):
                     self.data = datetime.datetime.strptime(self.data, self._value['format']).date()
                     return True
                 except Exception as e:
-                    self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'])
+                    self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'],
+                                                                  data=self.data)
                     return False
         else:
             if isinstance(self.data, datetime.datetime):
@@ -138,12 +153,16 @@ class Validator(object):
                     ).date().strftime(self._value['format'])
                     return True
                 except Exception as e:
-                    self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'])
+                    self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'],
+                                                                  data=self.data)
                     return False
-        self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'])
+        self.error = self._MESSAGES[self.DATE].format(date_format=self._value['format'], data=self.data)
         return False
 
     def check_datetime(self):
+        if isinstance(self.data, (str, unicode)):
+            self.data = self.data.strip()
+
         import datetime
         if self._value['convert_to_datetime']:
             if isinstance(self.data, datetime.datetime):
@@ -151,12 +170,12 @@ class Validator(object):
             elif isinstance(self.data, datetime.date):
                 self.data = datetime.datetime(self.data.year, self.data.month, self.data.day)
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
                 try:
                     self.data = datetime.datetime.strptime(self.data, self._value['format'])
                     return True
                 except Exception as e:
-                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
+                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'], data=self.data)
                     return False
         else:
             if isinstance(self.data, datetime.datetime):
@@ -166,7 +185,11 @@ class Validator(object):
                 self.data = datetime.datetime(self.data.year, self.data.month, self.data.day).strftime(
                     self._value['format'])
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
+                self.data = datetime.datetime.strptime(
+                    self.data,
+                    self._value['format']
+                ).strftime(self._value['format'])
                 try:
                     self.data = datetime.datetime.strptime(
                         self.data,
@@ -174,7 +197,7 @@ class Validator(object):
                     ).strftime(self._value['format'])
                     return True
                 except Exception as e:
-                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
+                    self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'], data=self.data)
                     return False
-        self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'])
+        self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'], data=self.data)
         return False
