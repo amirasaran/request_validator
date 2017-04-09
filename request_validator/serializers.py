@@ -12,13 +12,13 @@ class BaseSerializer(object):
         self._required = required
         self._force_valid = force_valid
         self._errors = None
-        self._validate_data = None
+        self._validated_data = None
 
     def get_errors(self):
         return self._errors
 
     def validate_data(self):
-        return self._validate_data
+        return self._validated_data
 
     def has_error(self):
         return len(self._errors) != 0
@@ -29,32 +29,17 @@ class BaseSerializer(object):
 
 
 class Serializer(BaseSerializer):
-    def __init__(self, many=False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(Serializer, self).__init__(*args, **kwargs)
-        self._many = many
-        self._validate_data = {}
+        self._validated_data = {}
         self._errors = {}
         self._default = {}
         self._all_fields_valid = True
 
     def validate_data(self):
         if not (self._force_valid and self.has_error()) and self._all_fields_valid:
-            return self._validate_data
+            return self._validated_data
         return {}
-
-    def set_initial_data(self, data, index):
-        self._initial_data = None
-        if not data:
-            return self
-
-        if self._source in data:
-            self._initial_data = data[self._source]
-        elif index in data:
-            self._initial_data = data[index]
-        else:
-            if self._required:
-                self.add_error("initial_error", "This field is required")
-        return self
 
     def __new__(cls, *args, **kwargs):
         many = kwargs.pop("many", False)
@@ -63,7 +48,6 @@ class Serializer(BaseSerializer):
             return ListSerializer(cls, *args, **kwargs)
         else:
             return object.__new__(cls, *args, **kwargs)
-
 
     @classmethod
     def fields(cls):
@@ -101,7 +85,7 @@ class Serializer(BaseSerializer):
 
     def is_valid(self):
         validated_data, serializer_validated = self._validate(self._initial_data)
-        self._validate_data = validated_data
+        self._validated_data = validated_data
         return not self.has_error()
 
     def _validate(self, initial_data):
@@ -129,7 +113,19 @@ class Serializer(BaseSerializer):
                     self.add_error(attr, field.get_errors())
                     continue
                 validate_data[attr] = field.data
-            elif isinstance(field, BaseSerializer):
+            elif isinstance(field,  Serializer):
+                field.set_initial_data(initial_data, attr)
+                if field.has_error():
+                    self._all_fields_valid = False
+                    serializer_validated = False
+                    self.add_error(attr, field.get_errors())
+                    continue
+                elif not field.is_valid():
+                    serializer_validated = False
+                    self.add_error(attr, field.get_errors())
+                validate_data[attr] = field.validate_data()
+                continue
+            elif isinstance(field, ListSerializer):
                 field.set_initial_data(initial_data, attr)
                 if field.has_error():
                     self._all_fields_valid = False
@@ -157,6 +153,20 @@ class Serializer(BaseSerializer):
     def all_fields_valid(self):
         return self._all_fields_valid
 
+    def set_initial_data(self, data, index):
+        self._initial_data = None
+        if not data:
+            return self
+
+        if self._source in data:
+            self._initial_data = data[self._source]
+        elif index in data:
+            self._initial_data = data[index]
+        else:
+            if self._required:
+                self.add_error(index, "This field is required")
+        return self
+
 
 class ListSerializer(BaseSerializer):
     def __init__(self, serializer, *args, **kwargs):
@@ -167,6 +177,7 @@ class ListSerializer(BaseSerializer):
         self._args = args
         self._kwargs = kwargs
         self._data = []
+        self._default = []
 
     def add_error(self, value):
         self._errors.append(value)
@@ -177,7 +188,7 @@ class ListSerializer(BaseSerializer):
                 data_type=type(self._initial_data).__name__)
 
         for initial_data in self._initial_data:
-            serializer = self._serializer(data=initial_data, many=False, *self._args, **self._kwargs)
+            serializer = self._serializer(data=initial_data, *self._args, **self._kwargs)
             if serializer.is_valid():
                 self._validated_data.append(serializer.validate_data())
                 self._data.append(serializer.data)
@@ -187,11 +198,25 @@ class ListSerializer(BaseSerializer):
                     self._validated_data.append(serializer.validate_data())
                     self._data.append(serializer.data)
 
-        return self.has_error()
+        return not self.has_error()
 
     @property
     def data(self):
         return self._data
+
+    def set_initial_data(self, data, index):
+        self._initial_data = None
+        if not data:
+            return self
+
+        if self._source in data:
+            self._initial_data = data[self._source]
+        elif index in data:
+            self._initial_data = data[index]
+        else:
+            if self._required:
+                self.add_error("This field is required")
+        return self
 
 
 class ValidationError(Exception):
