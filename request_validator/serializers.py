@@ -6,21 +6,41 @@ from .fields import Field
 
 
 class BaseSerializer(object):
-    def __init__(self, data=None, source=None, required=True, many=False, force_valid=False):
+    def __init__(self, data=None, source=None, required=True, force_valid=False):
         self._initial_data = data
         self._source = source
         self._required = required
-        self._many = many
         self._force_valid = force_valid
+        self._errors = None
+        self._validate_data = None
+
+    def get_errors(self):
+        return self._errors
+
+    def validate_data(self):
+        return self._validate_data
+
+    def has_error(self):
+        return len(self._errors) != 0
+
+    @property
+    def errors(self):
+        return self.get_errors()
+
+
+class Serializer(BaseSerializer):
+    def __init__(self, many=False, *args, **kwargs):
+        super(Serializer, self).__init__(*args, **kwargs)
+        self._many = many
+        self._validate_data = {}
+        self._errors = {}
+        self._default = {}
         self._all_fields_valid = True
-        if self._many:
-            self._validate_data = []
-            self._errors = []
-            self._default = []
-        else:
-            self._validate_data = {}
-            self._errors = {}
-            self._default = {}
+
+    def validate_data(self):
+        if not (self._force_valid and self.has_error()) and self._all_fields_valid:
+            return self._validate_data
+        return {}
 
     def set_initial_data(self, data, index):
         self._initial_data = None
@@ -37,18 +57,13 @@ class BaseSerializer(object):
         return self
 
     def __new__(cls, *args, **kwargs):
+        many = kwargs.pop("many", False)
         cls.fields()
-        return object.__new__(cls, *args, **kwargs)
-
-    def validate_data(self):
-        if self._many:
-            if not (self._force_valid and not self.has_error()):
-                return self._validate_data
-            return []
+        if many:
+            return ListSerializer(cls, *args, **kwargs)
         else:
-            if not (self._force_valid and self.has_error()) and self._all_fields_valid:
-                return self._validate_data
-            return {}
+            return object.__new__(cls, *args, **kwargs)
+
 
     @classmethod
     def fields(cls):
@@ -82,33 +97,11 @@ class BaseSerializer(object):
         return data
 
     def add_error(self, index, value):
-        if self._many:
-            self._errors.append({index: value})
-        else:
-            self._errors[index] = value
-
-    def get_errors(self):
-        return self._errors
-
-    def has_error(self):
-        return len(self._errors) != 0
+        self._errors[index] = value
 
     def is_valid(self):
-        if not self._many:
-            validated_data, serializer_validated = self._validate(self._initial_data)
-            # if not (self._force_valid and serializer_validated):
-            self._validate_data = validated_data
-        else:
-            if self._initial_data:
-                assert isinstance(self._initial_data, list) or isinstance(self._initial_data, tuple), \
-                    """ _initial_data must be list or tuple but get {data_type}""".format(
-                        data_type=type(self._initial_data).__name__)
-                for initial_data in self._initial_data:
-                    validated_data, serializer_validated = self._validate(initial_data)
-                    if validated_data:
-                        if not (self._force_valid and not serializer_validated):
-                            self._validate_data.append(validated_data)
-
+        validated_data, serializer_validated = self._validate(self._initial_data)
+        self._validate_data = validated_data
         return not self.has_error()
 
     def _validate(self, initial_data):
@@ -164,9 +157,41 @@ class BaseSerializer(object):
     def all_fields_valid(self):
         return self._all_fields_valid
 
+
+class ListSerializer(BaseSerializer):
+    def __init__(self, serializer, *args, **kwargs):
+        super(ListSerializer, self).__init__(*args, **kwargs)
+        self._serializer = serializer
+        self._validated_data = []
+        self._errors = []
+        self._args = args
+        self._kwargs = kwargs
+        self._data = []
+
+    def add_error(self, value):
+        self._errors.append(value)
+
+    def is_valid(self):
+        assert isinstance(self._initial_data, list) or isinstance(self._initial_data, tuple), \
+            """ _initial_data must be list or tuple but get {data_type}""".format(
+                data_type=type(self._initial_data).__name__)
+
+        for initial_data in self._initial_data:
+            serializer = self._serializer(data=initial_data, many=False, *self._args, **self._kwargs)
+            if serializer.is_valid():
+                self._validated_data.append(serializer.validate_data())
+                self._data.append(serializer.data)
+            else:
+                self.add_error(serializer.get_errors())
+                if not self._force_valid and serializer.validate_data():
+                    self._validated_data.append(serializer.validate_data())
+                    self._data.append(serializer.data)
+
+        return self.has_error()
+
     @property
-    def errors(self):
-        return self.get_errors()
+    def data(self):
+        return self._data
 
 
 class ValidationError(Exception):
