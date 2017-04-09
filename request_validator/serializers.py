@@ -150,7 +150,7 @@ class Serializer(BaseSerializer):
         return attr
 
     @property
-    def all_fields_valid(self):
+    def is_all_fields_valid(self):
         return self._all_fields_valid
 
     def set_initial_data(self, data, index):
