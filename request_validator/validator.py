@@ -64,7 +64,8 @@ class Validator(object):
             if re.match(r"\d+", self.data):
                 self.data = int(self.data)
                 return True
-
+        if self.data is None:
+            return True
         self.error = self._MESSAGES[self.INT].format(data_type=type(self.data).__name__)
         return False
 
@@ -74,12 +75,18 @@ class Validator(object):
         if isinstance(self.data, int):
             self.data = float(self.data)
             return True
+        if self.data is None:
+            return True
         self.error = self._MESSAGES[self.FLOAT].format(data_type=type(self.data).__name__)
         return False
 
     def check_string(self):
         if isinstance(self.data, (str, unicode)):
             return True
+
+        if self.data is None:
+            return True
+
         self.error = self._MESSAGES[self.STRING].format(data_type=type(self.data).__name__)
         return False
 
@@ -130,7 +137,7 @@ class Validator(object):
                 return True
             elif isinstance(self.data, datetime.date):
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
                 try:
                     self.data = datetime.datetime.strptime(self.data, self._value['format']).date()
                     return True
@@ -145,7 +152,7 @@ class Validator(object):
             elif isinstance(self.data, datetime.date):
                 self.data = self.data.strftime(self._value['format'])
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
                 try:
                     self.data = datetime.datetime.strptime(
                         self.data,
