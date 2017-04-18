@@ -15,6 +15,7 @@ class Validator(object):
     MAX_VALUE = "max_value"
     MIN_VALUE = "min_value"
     IN = "in"
+    BOOLEAN = "boolean"
 
     _MESSAGES = {
         NOT_NULL: "This field cannot be null",
@@ -29,7 +30,8 @@ class Validator(object):
         IN: "This field must be choice from ({choices})",
         REGEX: "This field must be valid in pattern ({pattern})",
         DATE: "This field must be valid date (format='{date_format}') but given data is {data}",
-        DATETIME: "This field must be valid datetime (format='{date_format}') but given data is {data}"
+        DATETIME: "This field must be valid datetime (format='{date_format}') but given data is {data}",
+        BOOLEAN: "This field must be boolean bug given  {data_type}"
     }
 
     def __init__(self, data, validator, value=None):
@@ -64,7 +66,8 @@ class Validator(object):
             if re.match(r"\d+", self.data):
                 self.data = int(self.data)
                 return True
-
+        if self.data is None:
+            return True
         self.error = self._MESSAGES[self.INT].format(data_type=type(self.data).__name__)
         return False
 
@@ -74,12 +77,18 @@ class Validator(object):
         if isinstance(self.data, int):
             self.data = float(self.data)
             return True
+        if self.data is None:
+            return True
         self.error = self._MESSAGES[self.FLOAT].format(data_type=type(self.data).__name__)
         return False
 
     def check_string(self):
         if isinstance(self.data, (str, unicode)):
             return True
+
+        if self.data is None:
+            return True
+
         self.error = self._MESSAGES[self.STRING].format(data_type=type(self.data).__name__)
         return False
 
@@ -130,7 +139,7 @@ class Validator(object):
                 return True
             elif isinstance(self.data, datetime.date):
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
                 try:
                     self.data = datetime.datetime.strptime(self.data, self._value['format']).date()
                     return True
@@ -145,7 +154,7 @@ class Validator(object):
             elif isinstance(self.data, datetime.date):
                 self.data = self.data.strftime(self._value['format'])
                 return True
-            elif isinstance(self.data, str):
+            elif isinstance(self.data, (str, unicode)):
                 try:
                     self.data = datetime.datetime.strptime(
                         self.data,
@@ -200,4 +209,11 @@ class Validator(object):
                     self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'], data=self.data)
                     return False
         self.error = self._MESSAGES[self.DATETIME].format(date_format=self._value['format'], data=self.data)
+        return False
+
+    def check_boolean(self):
+        if isinstance(self.data, bool):
+            return True
+        self.error = self._MESSAGES[self.BOOLEAN].format(data_type=type(self.data).__name__)
+
         return False
