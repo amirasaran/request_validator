@@ -45,29 +45,61 @@ class Serializer(BaseSerializer):
         many = kwargs.pop("many", False)
         cls.fields()
         if many:
+            if hasattr(cls, "Meta") and hasattr(cls.Meta, "list_serializer"):
+                return cls.Meta.list_serializer(cls, *args, **kwargs)
             return ListSerializer(cls, *args, **kwargs)
         else:
             return object.__new__(cls, *args, **kwargs)
 
     @classmethod
     def fields(cls):
-        if not hasattr(cls, "_fields_dict"):
-            fields = {}
+        if "_fields_dict" not in cls.__dict__:
+            cls._fields_dict = {}
             for field in cls._get_fields():
-                fields[field] = getattr(cls, field)
-                delattr(cls, field)
-            setattr(cls, '_fields_dict', fields)
-        return getattr(cls, '_fields_dict')
+                if field in cls.__dict__:
+                    cls._fields_dict[field] = getattr(cls, field)
+                    if hasattr(cls, field):
+                        delattr(cls, field)
+
+            if len(cls._get_classes()) > 1:
+                cls._fields_dict.update(cls._get_parent().fields())
+
+        return cls._fields_dict
 
     @classmethod
     def _get_fields(cls):
-        if not hasattr(cls, '_fields'):
+        if '_fields' not in cls.__dict__:
             cls._fields = []
-            for field in set(dir(cls)) - set(dir(BaseSerializer)):
+            for field in set(dir(cls)) - set(dir(cls._get_parent())):
                 if not isinstance(getattr(cls, field), (Field, BaseSerializer)):
                     continue
                 cls._fields.append(field)
+
+            if len(cls._get_classes()) > 1:
+                cls._fields = cls._fields + cls._get_parent()._get_fields()
+
         return cls._fields
+
+    @classmethod
+    def _get_classes(cls):
+        if "_base_classes" not in cls.__dict__:
+            the_class = cls
+            cls._base_classes = []
+            while True:
+                bases = the_class.__bases__
+                if len(bases) == 0:
+                    break
+                assert len(bases) == 1, """ can not use multiple extend"""
+                the_class = bases[0]
+                cls._base_classes.append(the_class)
+                if the_class == Serializer:
+                    break
+
+        return cls._base_classes
+
+    @classmethod
+    def _get_parent(cls):
+        return cls._get_classes()[0]
 
     def _get_field(self, key):
         return copy.deepcopy(getattr(self, '_fields_dict')[key])
@@ -113,7 +145,7 @@ class Serializer(BaseSerializer):
                     self.add_error(attr, field.get_errors())
                     continue
                 validate_data[attr] = field.data
-            elif isinstance(field,  Serializer):
+            elif isinstance(field, Serializer):
                 field.set_initial_data(initial_data, attr)
                 if field.has_error():
                     self._all_fields_valid = False
@@ -171,6 +203,8 @@ class Serializer(BaseSerializer):
 class ListSerializer(BaseSerializer):
     def __init__(self, serializer, *args, **kwargs):
         super(ListSerializer, self).__init__(*args, **kwargs)
+
+        kwargs.pop("data", False)
         self._serializer = serializer
         self._validated_data = []
         self._errors = []
@@ -178,25 +212,32 @@ class ListSerializer(BaseSerializer):
         self._kwargs = kwargs
         self._data = []
         self._default = []
+        self._allow_null = True
 
     def add_error(self, value):
         self._errors.append(value)
 
+    def _can_null(self):
+        return self._allow_null and self._initial_data is None
+
     def is_valid(self):
-        assert isinstance(self._initial_data, list) or isinstance(self._initial_data, tuple), \
+        assert isinstance(self._initial_data, (list, tuple)) or self._initial_data is None, \
             """ _initial_data must be list or tuple but get {data_type}""".format(
                 data_type=type(self._initial_data).__name__)
 
-        for initial_data in self._initial_data:
-            serializer = self._serializer(data=initial_data, *self._args, **self._kwargs)
-            if serializer.is_valid():
-                self._validated_data.append(serializer.validate_data())
-                self._data.append(serializer.data)
-            else:
-                self.add_error(serializer.get_errors())
-                if not self._force_valid and serializer.validate_data():
+        if self._initial_data is not None:
+            for initial_data in self._initial_data:
+                serializer = self._serializer(data=initial_data, *self._args, **self._kwargs)
+                if serializer.is_valid():
                     self._validated_data.append(serializer.validate_data())
                     self._data.append(serializer.data)
+                else:
+                    self.add_error(serializer.get_errors())
+                    if not self._force_valid and serializer.validate_data():
+                        self._validated_data.append(serializer.validate_data())
+                        self._data.append(serializer.data)
+        else:
+            self.add_error("can not be null !")
 
         return not self.has_error()
 

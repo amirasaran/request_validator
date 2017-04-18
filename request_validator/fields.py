@@ -196,3 +196,9 @@ class DateTimeField(Field):
             self._format = "%Y-%m-%dT%H:%M:%S"
 
         self.add_rule(Validator.DATETIME, {"format": self._format, "convert_to_datetime": convert_to_datetime})
+
+
+class BooleanField(Field):
+    def __init__(self, *args, **kwargs):
+        super(BooleanField, self).__init__(*args, **kwargs)
+        self.add_rule(Validator.BOOLEAN)
