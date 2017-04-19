@@ -202,3 +202,9 @@ class BooleanField(Field):
     def __init__(self, *args, **kwargs):
         super(BooleanField, self).__init__(*args, **kwargs)
         self.add_rule(Validator.BOOLEAN)
+
+
+class ListField(Field):
+    def __init__(self, *args, **kwargs):
+        super(ListField, self).__init__(*args, **kwargs)
+        self.add_rule(Validator.LIST)

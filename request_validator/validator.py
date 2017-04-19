@@ -16,6 +16,7 @@ class Validator(object):
     MIN_VALUE = "min_value"
     IN = "in"
     BOOLEAN = "boolean"
+    LIST = "list"
 
     _MESSAGES = {
         NOT_NULL: "This field cannot be null",
@@ -31,7 +32,8 @@ class Validator(object):
         REGEX: "This field must be valid in pattern ({pattern})",
         DATE: "This field must be valid date (format='{date_format}') but given data is {data}",
         DATETIME: "This field must be valid datetime (format='{date_format}') but given data is {data}",
-        BOOLEAN: "This field must be boolean bug given  {data_type}"
+        BOOLEAN: "This field must be boolean bug given  {data_type}",
+        LIST: "This field must be list bug given  {data_type}"
     }
 
     def __init__(self, data, validator, value=None):
@@ -215,5 +217,12 @@ class Validator(object):
         if isinstance(self.data, bool):
             return True
         self.error = self._MESSAGES[self.BOOLEAN].format(data_type=type(self.data).__name__)
+
+        return False
+
+    def check_list(self):
+        if isinstance(self.data, list):
+            return True
+        self.error = self._MESSAGES[self.LIST].format(data_type=type(self.data).__name__)
 
         return False
