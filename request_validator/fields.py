@@ -1,12 +1,9 @@
 from __future__ import absolute_import
-
-import copy
-
 from .validator import *
 
 
 class Field(object):
-    def __init__(self, source=None, required=False, many=False, default=None):
+    def __init__(self, source=None, required=False, many=False, default=None, allow_null=True):
         self._source = source
         self._data = None
         self.data = None
@@ -15,6 +12,8 @@ class Field(object):
         self._rules = {}
         self._required = required
         self._default = default
+        if not allow_null:
+            self.add_rule(Validator.NOT_NULL)
 
     def set_data(self, data, index):
         self.data = self._default
@@ -76,7 +75,7 @@ class Field(object):
 
 
 class CharField(Field):
-    def __init__(self, min_length=None, max_length=None, choices=None, allow_blank=False, allow_null=True, *args,
+    def __init__(self, min_length=None, max_length=None, choices=None, allow_blank=False, *args,
                  **kwargs):
         super(CharField, self).__init__(*args, **kwargs)
 
@@ -84,8 +83,6 @@ class CharField(Field):
 
         if not allow_blank:
             self.add_rule(Validator.NOT_BLANK)
-        if not allow_null:
-            self.add_rule(Validator.NOT_NULL)
 
         if min_length is not None:
             assert isinstance(min_length, int), \
@@ -104,14 +101,11 @@ class CharField(Field):
 
 
 class IntField(Field):
-    def __init__(self, min_value=None, max_value=None, choices=None, allow_null=True, *args,
+    def __init__(self, min_value=None, max_value=None, choices=None, *args,
                  **kwargs):
         super(IntField, self).__init__(*args, **kwargs)
 
         self.add_rule(Validator.INT)
-
-        if not allow_null:
-            self.add_rule(Validator.NOT_NULL)
 
         if min_value is not None:
             assert isinstance(min_value, int), \
@@ -139,14 +133,11 @@ class IntegerField(IntField):
 
 
 class FloatField(Field):
-    def __init__(self, min_value=None, max_value=None, choices=None, allow_null=True, *args,
+    def __init__(self, min_value=None, max_value=None, choices=None, *args,
                  **kwargs):
         super(FloatField, self).__init__(*args, **kwargs)
 
         self.add_rule(Validator.FLOAT)
-
-        if not allow_null:
-            self.add_rule(Validator.NOT_NULL)
 
         if min_value is not None:
             assert isinstance(min_value, float), \

@@ -246,7 +246,7 @@ class ListSerializer(BaseSerializer):
         return self._data
 
     def set_initial_data(self, data, index):
-        self._initial_data = None
+        self._initial_data = self._default
         if not data:
             return self
 

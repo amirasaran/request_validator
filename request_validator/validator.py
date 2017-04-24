@@ -1,4 +1,6 @@
-from __builtin__ import unicode
+import six
+from __builtin__ import unicode, long
+from decimal import Decimal
 
 
 class Validator(object):
@@ -63,6 +65,12 @@ class Validator(object):
     def check_int(self):
         if isinstance(self.data, int):
             return True
+        if type(self.data) is long:
+            self.data = int(self.data)
+            return True
+        if type(self.data) is Decimal:
+            self.data = int(self.data)
+            return True
         if isinstance(self.data, (str, unicode)):
             import re
             if re.match(r"\d+", self.data):
@@ -76,6 +84,9 @@ class Validator(object):
     def check_float(self):
         if isinstance(self.data, float):
             return True
+        if type(self.data) is Decimal:
+            self.data = float(self.data)
+            return True
         if isinstance(self.data, int):
             self.data = float(self.data)
             return True
@@ -87,7 +98,6 @@ class Validator(object):
     def check_string(self):
         if isinstance(self.data, (str, unicode)):
             return True
-
         if self.data is None:
             return True
 
