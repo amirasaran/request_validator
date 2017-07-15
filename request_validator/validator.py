@@ -89,6 +89,10 @@ class Validator(object):
         if self.data is None:
             return True
 
+        if isinstance(self.data, (int, float)):
+            self.data = str(self.data)
+            return True
+
         self.error = self._MESSAGES[self.STRING].format(data_type=type(self.data).__name__)
         return False
 
