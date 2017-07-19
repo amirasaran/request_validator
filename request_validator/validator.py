@@ -1,4 +1,7 @@
-from __builtin__ import unicode
+try:
+    from builtins import str
+except Exception as e:
+    pass
 
 
 class Validator(object):
@@ -61,7 +64,7 @@ class Validator(object):
     def check_int(self):
         if isinstance(self.data, int):
             return True
-        if isinstance(self.data, (str, unicode)):
+        if isinstance(self.data, str):
             import re
             if re.match(r"\d+", self.data):
                 self.data = int(self.data)
@@ -83,7 +86,7 @@ class Validator(object):
         return False
 
     def check_string(self):
-        if isinstance(self.data, (str, unicode)):
+        if isinstance(self.data, str):
             return True
 
         if self.data is None:
@@ -134,7 +137,7 @@ class Validator(object):
         return False
 
     def check_date(self):
-        if isinstance(self.data, (str, unicode)):
+        if isinstance(self.data, str):
             self.data = self.data.strip()
         import datetime
         if self._value['convert_to_date']:
@@ -143,7 +146,7 @@ class Validator(object):
                 return True
             elif isinstance(self.data, datetime.date):
                 return True
-            elif isinstance(self.data, (str, unicode)):
+            elif isinstance(self.data, str):
                 try:
                     self.data = datetime.datetime.strptime(self.data, self._value['format']).date()
                     return True
@@ -158,7 +161,7 @@ class Validator(object):
             elif isinstance(self.data, datetime.date):
                 self.data = self.data.strftime(self._value['format'])
                 return True
-            elif isinstance(self.data, (str, unicode)):
+            elif isinstance(self.data, str):
                 try:
                     self.data = datetime.datetime.strptime(
                         self.data,
@@ -173,7 +176,7 @@ class Validator(object):
         return False
 
     def check_datetime(self):
-        if isinstance(self.data, (str, unicode)):
+        if isinstance(self.data, str):
             self.data = self.data.strip()
 
         import datetime
@@ -183,7 +186,7 @@ class Validator(object):
             elif isinstance(self.data, datetime.date):
                 self.data = datetime.datetime(self.data.year, self.data.month, self.data.day)
                 return True
-            elif isinstance(self.data, (str, unicode)):
+            elif isinstance(self.data, str):
                 try:
                     self.data = datetime.datetime.strptime(self.data, self._value['format'])
                     return True
@@ -198,7 +201,7 @@ class Validator(object):
                 self.data = datetime.datetime(self.data.year, self.data.month, self.data.day).strftime(
                     self._value['format'])
                 return True
-            elif isinstance(self.data, (str, unicode)):
+            elif isinstance(self.data, str):
                 self.data = datetime.datetime.strptime(
                     self.data,
                     self._value['format']

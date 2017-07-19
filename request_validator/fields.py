@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 
 import copy
 
@@ -54,7 +54,7 @@ class Field(object):
 
     def validate(self):
         if not self._many:
-            for rule, value in self._rules.iteritems():
+            for rule, value in self._rules.items():
                 validator = Validator(self.data, rule, value)
                 if validator.validate():
                     self.data = validator.data
@@ -66,7 +66,7 @@ class Field(object):
                 """ data must be list or tuple but get {data_type}""".format(
                     data_type=type(self.data).__name__)
             for data in self.data:
-                for rule, value in self._rules.iteritems():
+                for rule, value in self._rules.items():
                     validator = Validator(data, rule, value)
                     if validator.validate():
                         continue

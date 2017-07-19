@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 
 import copy
 
@@ -28,9 +28,9 @@ class BaseSerializer(object):
         return self.get_errors()
 
 
-class Serializer(BaseSerializer):
+class SingleSerializer(BaseSerializer):
     def __init__(self, *args, **kwargs):
-        super(Serializer, self).__init__(*args, **kwargs)
+        super(SingleSerializer, self).__init__(*args, **kwargs)
         self._validated_data = {}
         self._errors = {}
         self._default = {}
@@ -40,16 +40,6 @@ class Serializer(BaseSerializer):
         if not (self._force_valid and self.has_error()) and self._all_fields_valid:
             return self._validated_data
         return {}
-
-    def __new__(cls, *args, **kwargs):
-        many = kwargs.pop("many", False)
-        cls.fields()
-        if many:
-            if hasattr(cls, "Meta") and hasattr(cls.Meta, "list_serializer"):
-                return cls.Meta.list_serializer(cls, *args, **kwargs)
-            return ListSerializer(cls, *args, **kwargs)
-        else:
-            return object.__new__(cls, *args, **kwargs)
 
     @classmethod
     def fields(cls):
@@ -107,7 +97,7 @@ class Serializer(BaseSerializer):
     @property
     def data(self):
         data = self.validate_data()
-        for key, value in self.fields().items():
+        for key, value in list(self.fields().items()):
             if key not in data:
                 data[key] = value._default
         return data
@@ -128,7 +118,7 @@ class Serializer(BaseSerializer):
         if len(errors) != 0:
             self._all_fields_valid = False
             for error in errors:
-                for key, value in error.iteritems():
+                for key, value in error.items():
                     self.add_error(key, value)
 
         for attr in self.fields():
@@ -258,6 +248,20 @@ class ListSerializer(BaseSerializer):
             if self._required:
                 self.add_error("This field is required")
         return self
+
+
+class Serializer(SingleSerializer):
+    def __new__(cls, *args, **kwargs):
+        many = kwargs.pop("many", False)
+        cls.fields()
+        if many:
+            if hasattr(cls, "Meta") and hasattr(cls.Meta, "list_serializer"):
+                return cls.Meta.list_serializer(cls, *args, **kwargs)
+            return ListSerializer(cls, *args, **kwargs)
+        else:
+            obj = object.__new__(cls)
+            obj.__init__(*args, **kwargs)
+            return obj
 
 
 class ValidationError(Exception):
