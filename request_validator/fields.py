@@ -27,7 +27,7 @@ class Field(object):
                 self._errors.append("This field is required")
             return self
 
-        if self._source in self._data:
+        if self._source is not None and self._source in self._data:
             self.data = self._data[self._source]
         elif index in self._data:
             self.data = self._data[index]

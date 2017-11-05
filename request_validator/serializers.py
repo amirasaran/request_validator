@@ -180,7 +180,7 @@ class SingleSerializer(BaseSerializer):
         if not data:
             return self
 
-        if self._source in data:
+        if self._source is not None and self._source in data:
             self._initial_data = data[self._source]
         elif index in data:
             self._initial_data = data[index]
