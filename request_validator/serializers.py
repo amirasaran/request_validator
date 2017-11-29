@@ -6,13 +6,14 @@ from .fields import Field
 
 
 class BaseSerializer(object):
-    def __init__(self, data=None, source=None, required=True, force_valid=False):
+    def __init__(self, data=None, source=None, required=True, force_valid=False, allow_null=False):
         self._initial_data = data
         self._source = source
         self._required = required
         self._force_valid = force_valid
         self._errors = None
         self._validated_data = None
+        self._allow_null = allow_null
 
     def get_errors(self):
         return self._errors
@@ -111,6 +112,9 @@ class SingleSerializer(BaseSerializer):
         return not self.has_error()
 
     def _validate(self, initial_data):
+        if initial_data is None and self._allow_null:
+            return None, True
+
         serializer_validated = True
         validate_data = {}
         errors, initial_data = self._check_user_validation(initial_data)
@@ -240,7 +244,7 @@ class ListSerializer(BaseSerializer):
         if not data:
             return self
 
-        if self._source in data:
+        if self._source is not None and self._source in data:
             self._initial_data = data[self._source]
         elif index in data:
             self._initial_data = data[index]

@@ -6,7 +6,7 @@ from .validator import *
 
 
 class Field(object):
-    def __init__(self, source=None, required=False, many=False, default=None):
+    def __init__(self, source=None, required=False, many=False, default=None, convert_before_validation=None):
         self._source = source
         self._data = None
         self.data = None
@@ -15,6 +15,12 @@ class Field(object):
         self._rules = {}
         self._required = required
         self._default = default
+        self._convert_before_validation = convert_before_validation
+
+        assert self._convert_before_validation is None or \
+               hasattr(convert_before_validation,
+                       '__call__'), """convert_before_validation must be a closure function but get {}""".format(
+            type(self._convert_before_validation))
 
     def set_data(self, data, index):
         self.data = self._default
@@ -34,6 +40,9 @@ class Field(object):
         else:
             if self._required:
                 self._errors.append("This field is required")
+
+        if self.data is not None and self._convert_before_validation is not None:
+            self.data = self._convert_before_validation(self.data)
 
         return self
 
